@@ -1,0 +1,36 @@
+{
+  "name": "tablero-avisos-notas-server",
+  "version": "1.0.0",
+  "description": "API REST para la aplicación de tablero de avisos y notas",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "jest --detectOpenHandles",
+    "test:watch": "jest --watch"
+  },
+  "keywords": [
+    "koa",
+    "mysql",
+    "rest",
+    "api",
+    "notas",
+    "avisos"
+  ],
+  "author": "Tu Equipo",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.0.3",
+    "koa": "^2.14.2",
+    "koa-bodyparser": "^4.4.1",
+    "koa-cors": "^0.0.16",
+    "koa-logger": "^3.2.1",
+    "koa-router": "^12.0.0",
+    "mysql2": "^3.6.0"
+  },
+  "devDependencies": {
+    "jest": "^29.6.2",
+    "nodemon": "^3.0.1",
+    "supertest": "^6.3.3"
+  }
+}

@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  # Servicio de la aplicación
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tablero-avisos-app
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mysql
+    environment:
+      - PORT=3000
+      - NODE_ENV=development
+      - DB_HOST=mysql
+      - DB_USER=root
+      - DB_PASSWORD=password
+      - DB_NAME=tablero_avisos
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+    restart: unless-stopped
+    networks:
+      - tablero-network
+
+  # Servicio de MySQL
+  mysql:
+    image: mysql:8
+    container_name: tablero-avisos-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: tablero_avisos
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    restart: unless-stopped
+    networks:
+      - tablero-network
+
+networks:
+  tablero-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
