@@ -43,4 +43,18 @@ async function testDatabaseConnection() {
   }
 }
 
-module.exports = { app, testDatabaseConnection };
+// Al final de app.js
+module.exports = { 
+  app, 
+  testDatabaseConnection: async () => {
+    try {
+      // Usa la nueva función de conexión
+      await db.query('SELECT 1');
+      console.log('Conexión a la base de datos establecida');
+      return true;
+    } catch (error) {
+      console.error('Error al conectar con la base de datos:', error);
+      throw error;
+    }
+  }
+};
