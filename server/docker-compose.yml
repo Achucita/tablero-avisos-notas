@@ -4,7 +4,7 @@ services:
   # Servicio de la aplicación
   app:
     build:
-      context: ./server
+      context: .
       dockerfile: Dockerfile
     container_name: tablero-avisos-app
     ports:
@@ -19,7 +19,7 @@ services:
       - DB_PASSWORD=password
       - DB_NAME=tablero_avisos
     volumes:
-      - ./server:/app
+      - .:/app
       - /app/node_modules
     restart: unless-stopped
     networks:
