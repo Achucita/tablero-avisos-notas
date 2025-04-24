@@ -1,43 +1,27 @@
-// src/components/NoteItem.js
 import React from 'react';
-import { Link } from 'react-router-dom';
 
-const NoteItem = ({ note, onDelete }) => {
-  // Función para formatear la fecha
+const NoteItem = ({ note, onDeleteNote, onEditNote }) => {
   const formatDate = (dateString) => {
-    const options = { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    };
+    const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
     return new Date(dateString).toLocaleDateString('es-ES', options);
   };
 
   return (
-    <div className="card mb-3">
-      <div className="card-body">
-        <h5 className="card-title">{note.title}</h5>
-        <p className="card-text">{note.content}</p>
-        <p className="card-text">
-          <small className="text-muted">
-            {note.updated_at ? 
-              `Actualizado: ${formatDate(note.updated_at)}` : 
-              `Creado: ${formatDate(note.created_at)}`}
-          </small>
-        </p>
-        <div className="d-flex justify-content-end">
-          <Link to={`/edit/${note.id}`} className="btn btn-sm btn-outline-primary me-2">
-            Editar
-          </Link>
-          <button 
-            onClick={() => onDelete(note.id)}
-            className="btn btn-sm btn-outline-danger"
-          >
-            Eliminar
-          </button>
-        </div>
+    <div className="note-item">
+      <h3 className="note-title">{note.titulo}</h3>
+      <p className="note-content">{note.contenido}</p>
+      <p className="note-author">Por: {note.autor}</p>
+      <p className="note-date">
+        Creada: {formatDate(note.createdAt)}
+        {note.updatedAt !== note.createdAt && ` (Actualizada: ${formatDate(note.updatedAt)})`}
+      </p>
+      <div className="note-actions">
+        <button className="btn btn-edit" onClick={() => onEditNote(note)}>
+          Editar
+        </button>
+        <button className="btn btn-delete" onClick={() => onDeleteNote(note.id)}>
+          Eliminar
+        </button>
       </div>
     </div>
   );

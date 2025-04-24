@@ -1,60 +1,61 @@
 version: '3.8'
 
 services:
-  # Servicio de MySQL
-  db:
+  mysql:
     image: mysql:8.0
-    container_name: tablero_db
+    container_name: tablero_mysql
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
-      MYSQL_DATABASE: ${DB_NAME:-tablero_db}
-      MYSQL_USER: ${DB_USER:-tablero_user}
-      MYSQL_PASSWORD: ${DB_PASSWORD:-tablero_pass}
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: tablero_db
+      MYSQL_USER: tablero_user
+      MYSQL_PASSWORD: tablero_password
     ports:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
-      - app_network
+      - tablero_network
 
-  # Servicio del servidor API
   server:
     build: ./server
     container_name: tablero_server
     restart: always
     depends_on:
-      - db
+      - mysql
     environment:
-      NODE_ENV: ${NODE_ENV:-production}
-      DB_HOST: db
-      DB_PORT: 3306
-      DB_USER: ${DB_USER:-tablero_user}
-      DB_PASSWORD: ${DB_PASSWORD:-tablero_pass}
-      DB_NAME: ${DB_NAME:-tablero_db}
-      PORT: 3001
+      - NODE_ENV=production
+      - PORT=3000
+      - DB_HOST=mysql
+      - DB_USER=tablero_user
+      - DB_PASSWORD=tablero_password
+      - DB_NAME=tablero_db
+      - DB_PORT=3306
     ports:
-      - "3001:3001"
+      - "3000:3000"
     volumes:
       - ./server:/app
       - /app/node_modules
     networks:
-      - app_network
+      - tablero_network
+    command: npm start
 
-  # Servicio del cliente React
   client:
     build: ./client
     container_name: tablero_client
     restart: always
-    depends_on:
-      - server
     ports:
       - "80:80"
+    volumes:
+      - ./client:/app
+      - /app/node_modules
     networks:
-      - app_network
+      - tablero_network
+    depends_on:
+      - server
 
 networks:
-  app_network:
+  tablero_network:
     driver: bridge
 
 volumes:

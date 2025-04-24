@@ -1,115 +1,85 @@
-// server/tests/notas.test.js
 const request = require('supertest');
-const { app, testDatabaseConnection } = require('../src/app');
-const { db, initDatabase } = require('../src/config/database');
+const app = require('../src/app');
+const { sequelize } = require('../src/config/database');
 
-// Mock para la base de datos
-jest.mock('../src/config/database', () => {
-  const mockQuery = jest.fn();
-  return {
-    db: {
-      query: mockQuery
-    },
-    initDatabase: jest.fn()
-  };
+// Antes de todas las pruebas, sincronizar la base de datos
+beforeAll(async () => {
+  await sequelize.sync({ force: true });
 });
 
-describe('Notas API', () => {
-  let server;
+// Después de todas las pruebas, cerrar la conexión
+afterAll(async () => {
+  await sequelize.close();
+});
 
-  beforeAll(async () => {
-    await testDatabaseConnection();
-    server = app.listen();
-  });
+describe('API de Notas', () => {
+  let notaId;
 
-  afterAll(async () => {
-    server.close();
-  });
-
-  beforeEach(() => {
-    // Limpiar los mocks antes de cada prueba
-    jest.clearAllMocks();
-  });
-
-  test('GET /api/notas debería devolver todas las notas', async () => {
-    const mockNotas = [
-      { id: 1, titulo: 'Nota 1', contenido: 'Contenido 1', tipo: 'nota' },
-      { id: 2, titulo: 'Aviso 1', contenido: 'Contenido 2', tipo: 'aviso' }
-    ];
-    
-    db.query.mockResolvedValueOnce([mockNotas]);
-    
-    const response = await request(server).get('/api/notas');
-    
-    expect(response.status).toBe(200);
-    expect(response.body.success).toBe(true);
-    expect(Array.isArray(response.body.data)).toBe(true);
-    expect(db.query).toHaveBeenCalledWith(expect.stringContaining('SELECT * FROM notas'));
-  });
-
-  test('GET /api/notas/:id debería devolver una nota por ID', async () => {
-    const mockNota = { id: 1, titulo: 'Nota 1', contenido: 'Contenido 1', tipo: 'nota' };
-    
-    db.query.mockResolvedValueOnce([[mockNota]]);
-    
-    const response = await request(server).get('/api/notas/1');
-    
-    expect(response.status).toBe(200);
-    expect(response.body.success).toBe(true);
-    expect(response.body.data).toEqual(mockNota);
-    expect(db.query).toHaveBeenCalledWith(expect.stringContaining('SELECT * FROM notas WHERE id = ?'), [1]);
-  });
-
-  test('POST /api/notas debería crear una nueva nota', async () => {
-    const nuevaNota = { titulo: 'Nueva Nota', contenido: 'Nuevo Contenido', tipo: 'nota' };
-    
-    db.query.mockResolvedValueOnce([{ insertId: 3 }]);
-    
-    const response = await request(server)
+  // Prueba para crear una nota
+  test('Debería crear una nueva nota', async () => {
+    const res = await request(app.callback())
       .post('/api/notas')
-      .send(nuevaNota);
+      .send({
+        titulo: 'Nota de prueba',
+        contenido: 'Contenido de prueba',
+        autor: 'Autor de prueba'
+      });
     
-    expect(response.status).toBe(201);
-    expect(response.body.success).toBe(true);
-    expect(response.body.data).toHaveProperty('id');
-    expect(response.body.data).toHaveProperty('titulo', 'Nueva Nota');
-    expect(db.query).toHaveBeenCalledWith(
-      expect.stringContaining('INSERT INTO notas'),
-      [nuevaNota.titulo, nuevaNota.contenido, nuevaNota.tipo]
-    );
+    expect(res.statusCode).toEqual(201);
+    expect(res.body).toHaveProperty('id');
+    expect(res.body.titulo).toEqual('Nota de prueba');
+    
+    notaId = res.body.id;
   });
 
-  test('PUT /api/notas/:id debería actualizar una nota existente', async () => {
-    const notaExistente = { id: 1, titulo: 'Nota Original', contenido: 'Contenido Original', tipo: 'nota' };
-    const datosActualizados = { titulo: 'Nota Actualizada', contenido: 'Contenido Actualizado', tipo: 'aviso' };
+  // Prueba para obtener todas las notas
+  test('Debería obtener todas las notas', async () => {
+    const res = await request(app.callback())
+      .get('/api/notas');
     
-    db.query.mockResolvedValueOnce([[notaExistente]]);
-    db.query.mockResolvedValueOnce([{ affectedRows: 1 }]);
-    
-    const response = await request(server)
-      .put('/api/notas/1')
-      .send(datosActualizados);
-    
-    expect(response.status).toBe(200);
-    expect(response.body.success).toBe(true);
-    expect(response.body.data).toHaveProperty('titulo', 'Nota Actualizada');
-    expect(db.query).toHaveBeenCalledWith(
-      expect.stringContaining('UPDATE notas SET'),
-      [datosActualizados.titulo, datosActualizados.contenido, datosActualizados.tipo, 1]
-    );
+    expect(res.statusCode).toEqual(200);
+    expect(Array.isArray(res.body)).toBeTruthy();
+    expect(res.body.length).toBeGreaterThan(0);
   });
 
-  test('DELETE /api/notas/:id debería eliminar una nota', async () => {
-    const notaExistente = { id: 1, titulo: 'Nota a eliminar', contenido: 'Contenido', tipo: 'nota' };
+  // Prueba para obtener una nota por ID
+  test('Debería obtener una nota por ID', async () => {
+    const res = await request(app.callback())
+      .get(`/api/notas/${notaId}`);
     
-    db.query.mockResolvedValueOnce([[notaExistente]]);
-    db.query.mockResolvedValueOnce([{ affectedRows: 1 }]);
+    expect(res.statusCode).toEqual(200);
+    expect(res.body).toHaveProperty('id', notaId);
+    expect(res.body.titulo).toEqual('Nota de prueba');
+  });
+
+  // Prueba para actualizar una nota
+  test('Debería actualizar una nota', async () => {
+    const res = await request(app.callback())
+      .put(`/api/notas/${notaId}`)
+      .send({
+        titulo: 'Nota actualizada',
+        contenido: 'Contenido actualizado',
+        autor: 'Autor actualizado'
+      });
     
-    const response = await request(server).delete('/api/notas/1');
+    expect(res.statusCode).toEqual(200);
+    expect(res.body).toHaveProperty('id', notaId);
+    expect(res.body.titulo).toEqual('Nota actualizada');
+    expect(res.body.contenido).toEqual('Contenido actualizado');
+  });
+
+  // Prueba para eliminar una nota
+  test('Debería eliminar una nota', async () => {
+    const res = await request(app.callback())
+      .delete(`/api/notas/${notaId}`);
     
-    expect(response.status).toBe(200);
-    expect(response.body.success).toBe(true);
-    expect(response.body.message).toContain('eliminada exitosamente');
-    expect(db.query).toHaveBeenCalledWith(expect.stringContaining('DELETE FROM notas WHERE id = ?'), [1]);
+    expect(res.statusCode).toEqual(200);
+    expect(res.body).toHaveProperty('mensaje', 'Nota eliminada correctamente');
+    
+    // Verificar que la nota ya no existe
+    const getRes = await request(app.callback())
+      .get(`/api/notas/${notaId}`);
+    
+    expect(getRes.statusCode).toEqual(404);
   });
 });
