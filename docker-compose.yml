@@ -32,9 +32,9 @@ services:
       DB_USER: ${DB_USER:-tablero_user}
       DB_PASSWORD: ${DB_PASSWORD:-tablero_pass}
       DB_NAME: ${DB_NAME:-tablero_db}
-      PORT: 3000
+      PORT: 3001
     ports:
-      - "3000:3000"
+      - "3001:3001"
     volumes:
       - ./server:/app
       - /app/node_modules
