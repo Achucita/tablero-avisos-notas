@@ -1,36 +1,36 @@
-const { Sequelize } = require('sequelize');
-require('dotenv').config();
+const mysql = require("mysql2/promise")
+require("dotenv").config()
 
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
-  {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    dialect: 'mysql',
-    logging: process.env.NODE_ENV === 'development' ? console.log : false,
-    pool: {
-      max: 5,
-      min: 0,
-      acquire: 30000,
-      idle: 10000
-    }
-  }
-);
+// Default values for local development
+const DB_HOST = process.env.DB_HOST || "127.0.0.1"
+const DB_USER = process.env.DB_USER || "root"
+const DB_PASSWORD = process.env.DB_PASSWORD || ""
+const DB_NAME = process.env.DB_NAME || "tablero_avisos"
+const DB_PORT = process.env.DB_PORT || 3306
 
-const connectDB = async () => {
+async function connectDB() {
   try {
-    await sequelize.authenticate();
-    console.log('Conexión a MySQL establecida correctamente');
-    
-    // Sincronizar modelos con la base de datos
-    await sequelize.sync({ alter: process.env.NODE_ENV === 'development' });
-    console.log('Modelos sincronizados con la base de datos');
-  } catch (error) {
-    console.error('Error al conectar a MySQL:', error.message);
-    process.exit(1);
-  }
-};
+    const connection = await mysql.createConnection({
+      host: DB_HOST,
+      user: DB_USER,
+      password: DB_PASSWORD,
+      database: DB_NAME,
+      port: DB_PORT,
+    })
 
-module.exports = { sequelize, connectDB };
+    console.log("Modelos sincronizados con la base de datos")
+    return connection
+  } catch (error) {
+    console.error("Error al conectar a MySQL:", error.message)
+    console.error("Verifique que MySQL esté en ejecución y que las credenciales sean correctas")
+
+    // In development, we might want to exit, but in production we might want to retry
+    if (process.env.NODE_ENV !== "production") {
+      process.exit(1)
+    }
+
+    throw error
+  }
+}
+
+module.exports = { connectDB }
