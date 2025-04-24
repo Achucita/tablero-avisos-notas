@@ -2,12 +2,12 @@
 import { render, screen } from '@testing-library/react';
 import App from './App';
 
-// Necesitamos mockear el react-router-dom ya que usamos BrowserRouter en App.js
+// Configurar el mock antes de importar React Router
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
-  BrowserRouter: ({ children }) => <div>{children}</div>,
-  Routes: ({ children }) => <div>{children}</div>,
-  Route: ({ element }) => <div>{element}</div>, // Render the element prop correctly
+  BrowserRouter: ({ children }) => <div data-testid="browser-router">{children}</div>,
+  Routes: ({ children }) => <div data-testid="routes">{children}</div>,
+  Route: () => <div data-testid="route"></div>,
 }));
 
 test('renders the application', () => {
