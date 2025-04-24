@@ -3,13 +3,13 @@ FROM node:18-alpine
 WORKDIR /app
 
 # Copiar archivos de configuración primero para aprovechar la caché de Docker
-COPY server/package*.json ./
+COPY package*.json ./
 
 # Instalar dependencias
 RUN npm install
 
 # Copiar el resto de los archivos
-COPY server/ ./
+COPY . .
 
 # Exponemos el puerto que usa nuestra aplicación
 EXPOSE 3000

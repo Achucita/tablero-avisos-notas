@@ -4,7 +4,7 @@ services:
   # Servicio de la aplicación
   app:
     build:
-      context: .
+      context: ./server
       dockerfile: Dockerfile
     container_name: tablero-avisos-app
     ports:
