@@ -7,7 +7,7 @@ jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   BrowserRouter: ({ children }) => <div>{children}</div>,
   Routes: ({ children }) => <div>{children}</div>,
-  Route: () => <div></div>,
+  Route: ({ element }) => <div>{element}</div>, // Render the element prop correctly
 }));
 
 test('renders the application', () => {
